@@ -69,17 +69,31 @@ int main() {
         return a.priority > b.priority;
     });
 
-    while(true) {
-        bool allCompleted = true;
+    while(!processes.empty()) {
+        std::sort(processes.begin(), processes.end(), [](const Process &a, const Process &b) {
+            return a.priority > b.priority;
+        });
         
-        for (size_t i = 0; i < processes.size(); ++i) {
-            if (processes[i].status == 0) {
-                allCompleted = false;
-                simulateProcessExecution(processes[i]);
+        int currentPriority = processes.front().priority;
+        std::vector<Process*> samePriorityProcesses;
+
+        for (auto &p : processes) {
+            if (p.priority == currentPriority and p.status == 0) {
+                samePriorityProcesses.push_back(&p)    ;
             }
         }
-        
-        if (allCompleted) break;
+
+        bool allCompleted = true;
+        for (auto *p : samePriorityProcesses) {
+            if (p->status == 0) {
+                allCompleted = false;
+                simulateProcessExecution(*p);
+            }
+        }
+
+        processes.erase(std::remove_if(processes.begin(), processes.end(), [](const Process &p) {
+            return p.status == 1;
+        }), processes.end());
     }
 
     std::cout << "Todos os processos foram executados.\n";
